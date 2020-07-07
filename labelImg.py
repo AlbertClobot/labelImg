@@ -48,6 +48,23 @@ from libs.hashableQListWidgetItem import HashableQListWidgetItem
 
 __appname__ = 'labelImg'
 
+# *
+# * aaa 2020-07-07 copy all rect boxes
+# *
+def file_name_cmp(x, y):
+    diff = len(x) - len(y)
+    if diff == 0:
+        if x < y:
+            return -1
+        elif x == y:
+            return 0
+        else:
+            return 1
+    return diff
+#
+#
+#
+
 class WindowMixin(object):
 
     def menu(self, title, actions=None):
@@ -131,6 +148,17 @@ class MainWindow(QMainWindow, WindowMixin):
         self.diffcButton.stateChanged.connect(self.btnstate)
         self.editButton = QToolButton()
         self.editButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+
+        # *
+        # * aaa 2020-07-07 add copy button
+        # *
+        self.copy_prev_button = QPushButton('copy all')
+        self.copy_prev_button.setShortcut('c')
+        self.copy_prev_button.clicked.connect(self.copy_prev)
+        listLayout.addWidget(self.copy_prev_button)
+        #
+        #
+        #
 
         # Add some of widgets to listLayout
         listLayout.addWidget(self.editButton)
@@ -514,6 +542,53 @@ class MainWindow(QMainWindow, WindowMixin):
     def change_format(self):
         if self.usingPascalVocFormat: self.set_format(FORMAT_YOLO)
         elif self.usingYoloFormat: self.set_format(FORMAT_PASCALVOC)
+
+    # *
+    # * aaa 2020-07-07 copy button function
+    # *
+    def copy_prev(self):
+        if not self.noShapes():
+            self.status('Marked area')
+            return
+
+        if len(self.mImgList) <= 0:
+            self.status('Please select an image catalog')
+            return
+
+        if self.filePath is None:
+            self.status('Please select an image catalog')
+            return
+
+        currIndex = self.mImgList.index(self.filePath)
+        if currIndex - 1 < 0:
+            self.status('There is no picture in front')
+            return
+
+        filename = self.mImgList[currIndex - 1]
+        if not filename:
+            self.status('no filename')
+            return
+        
+        filename = ustr(filename)
+        if not (filename and os.path.exists(filename)):
+            self.status('no filename')
+            return
+
+        # Label xml file and show bound box according to its filename
+        if not (self.usingPascalVocFormat is True and self.defaultSaveDir is not None):
+            self.status('no default save dir')
+            return
+        
+        basename = os.path.basename(os.path.splitext(filename)[0]) + XML_EXT
+        xmlPath = os.path.join(self.defaultSaveDir, basename)
+        self.loadPascalXMLByFilename(xmlPath)
+
+        self.canvas.setFocus(True)
+
+        self.status('Copy the above label successfully')
+    #
+    #
+    #
 
     def noShapes(self):
         return not self.itemsToShapes
