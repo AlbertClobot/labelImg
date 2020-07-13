@@ -574,14 +574,19 @@ class MainWindow(QMainWindow, WindowMixin):
             self.status('no filename')
             return
 
-        # Label xml file and show bound box according to its filename
-        if not (self.usingPascalVocFormat is True and self.defaultSaveDir is not None):
+        # Label xml/txt file and show bound box according to its filename
+        if not (self.defaultSaveDir is not None):
             self.status('no default save dir')
             return
         
-        basename = os.path.basename(os.path.splitext(filename)[0]) + XML_EXT
-        xmlPath = os.path.join(self.defaultSaveDir, basename)
-        self.loadPascalXMLByFilename(xmlPath)
+        if self.usingPascalVocFormat is True:    
+            basename = os.path.basename(os.path.splitext(filename)[0]) + XML_EXT
+            xmlPath = os.path.join(self.defaultSaveDir, basename)
+            self.loadPascalXMLByFilename(xmlPath)
+        elif self.usingYoloFormat is True:
+            basename = os.path.basename(os.path.splitext(filename)[0]) + TXT_EXT
+            txtPath = os.path.join(self.defaultSaveDir, basename)
+            self.loadYOLOTXTByFilename(txtPath)
 
         self.canvas.setFocus(True)
 
